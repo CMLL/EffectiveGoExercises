@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"time"
 )
 
 const (
@@ -34,7 +35,12 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 		return err
 	}
 
-	fmt.Fprintf(out, "Making %d requests to %s with a concurrency of %d", f.n, f.url, f.c)
+	var timeoutText string
+	if f.timeout != time.Duration(0) {
+		timeoutText = fmt.Sprintf(" and timeout of %v", f.timeout)
+	}
+
+	fmt.Fprintf(out, "Making %d requests to %s with a concurrency of %d%s", f.n, f.url, f.c, timeoutText)
 
 	return nil
 }

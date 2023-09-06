@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const usageText = `
@@ -17,8 +18,9 @@ Options:
 `
 
 type flags struct {
-	url  string
-	n, c int
+	url     string
+	n, c    int
+	timeout time.Duration
 }
 
 type number int
@@ -50,6 +52,7 @@ func (f *flags) parse(s *flag.FlagSet, args []string) error {
 	}
 	s.Var(toNumber(&f.n), "n", "Number of requests to make")
 	s.Var(toNumber(&f.c), "c", "Concurrency level")
+	s.DurationVar(&f.timeout, "t", time.Duration(0), "Timeout value")
 	if err := s.Parse(args); err != nil {
 		fmt.Println(s.Output(), err)
 		return err
