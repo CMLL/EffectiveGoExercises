@@ -45,6 +45,9 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 		methodText = fmt.Sprintf(" %s", f.method)
 	}
 
+	if f.headers != nil {
+		fmt.Fprintf(out, "Headers: %s\n", f.headers.String())
+	}
 	fmt.Fprintf(out, "Making %d%s requests to %s with a concurrency of %d%s", f.n, methodText, f.url, f.c, timeoutText)
 
 	return nil

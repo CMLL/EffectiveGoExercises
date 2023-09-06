@@ -22,6 +22,7 @@ type flags struct {
 	n, c    number
 	timeout time.Duration
 	method  option
+	headers headers
 }
 
 type number int
@@ -67,6 +68,17 @@ func (o *option) String() string {
 	return string(*o)
 }
 
+type headers []string
+
+func (h *headers) Set(s string) error {
+	*h = append(*h, s)
+	return nil
+}
+
+func (h *headers) String() string {
+	return strings.Join(*h, " ")
+}
+
 func (f *flags) parse(s *flag.FlagSet, args []string) error {
 	s.Usage = func() {
 		fmt.Fprintln(os.Stderr, usageText[1:])
@@ -76,6 +88,7 @@ func (f *flags) parse(s *flag.FlagSet, args []string) error {
 	s.Var(&f.c, "c", "Concurrency level")
 	s.DurationVar(&f.timeout, "t", time.Duration(0), "Timeout value")
 	s.Var(&f.method, "m", "Method, must be one of GET, POST, PUT")
+	s.Var(&f.headers, "H", "Headers for the request, can be multiple")
 	if err := s.Parse(args); err != nil {
 		fmt.Println(s.Output(), err)
 		return err

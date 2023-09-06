@@ -42,6 +42,14 @@ func TestRun(t *testing.T) {
 			"-m GET https://foo.com",
 			"Making 12 GET requests to https://foo.com with a concurrency of 12",
 		},
+		"headers": {
+			"-H=Accept:text/json https://foo.com",
+			"Headers: Accept:text/json",
+		},
+		"headers/mult": {
+			"-H=Accept:text/json -H=User-Agent:hit https://foo.com",
+			"Headers: Accept:text/json User-Agent:hit",
+		},
 	}
 	for name, tt := range happy {
 		tt := tt
