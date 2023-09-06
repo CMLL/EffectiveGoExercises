@@ -19,8 +19,9 @@ Options:
 
 type flags struct {
 	url     string
-	n, c    int
+	n, c    number
 	timeout time.Duration
+	method  option
 }
 
 type number int
@@ -41,8 +42,29 @@ func (n *number) String() string {
 	return strconv.Itoa(int(*n))
 }
 
-func toNumber(p *int) *number {
-	return (*number)(p)
+type option string
+
+func (o *option) Set(s string) error {
+	validOptions := []string{"GET", "POST", "PUT"}
+	valid := false
+	for _, option := range validOptions {
+		if strings.Contains(s, option) {
+			valid = true
+		}
+	}
+	if s == "" {
+		valid = true
+	}
+	if !valid {
+		return errors.New("invalid method " + s)
+	} else {
+		*o = option(s)
+		return nil
+	}
+}
+
+func (o *option) String() string {
+	return string(*o)
 }
 
 func (f *flags) parse(s *flag.FlagSet, args []string) error {
@@ -50,9 +72,10 @@ func (f *flags) parse(s *flag.FlagSet, args []string) error {
 		fmt.Fprintln(os.Stderr, usageText[1:])
 		flag.PrintDefaults()
 	}
-	s.Var(toNumber(&f.n), "n", "Number of requests to make")
-	s.Var(toNumber(&f.c), "c", "Concurrency level")
+	s.Var(&f.n, "n", "Number of requests to make")
+	s.Var(&f.c, "c", "Concurrency level")
 	s.DurationVar(&f.timeout, "t", time.Duration(0), "Timeout value")
+	s.Var(&f.method, "m", "Method, must be one of GET, POST, PUT")
 	if err := s.Parse(args); err != nil {
 		fmt.Println(s.Output(), err)
 		return err

@@ -28,8 +28,8 @@ func main() {
 
 func run(s *flag.FlagSet, args []string, out io.Writer) error {
 	f := &flags{
-		n: runtime.NumCPU(),
-		c: runtime.NumCPU(),
+		n: number(runtime.NumCPU()),
+		c: number(runtime.NumCPU()),
 	}
 	if err := f.parse(s, args); err != nil {
 		return err
@@ -40,7 +40,12 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 		timeoutText = fmt.Sprintf(" and timeout of %v", f.timeout)
 	}
 
-	fmt.Fprintf(out, "Making %d requests to %s with a concurrency of %d%s", f.n, f.url, f.c, timeoutText)
+	var methodText string
+	if f.method != "" {
+		methodText = fmt.Sprintf(" %s", f.method)
+	}
+
+	fmt.Fprintf(out, "Making %d%s requests to %s with a concurrency of %d%s", f.n, methodText, f.url, f.c, timeoutText)
 
 	return nil
 }

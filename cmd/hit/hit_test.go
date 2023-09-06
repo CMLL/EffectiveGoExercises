@@ -38,6 +38,10 @@ func TestRun(t *testing.T) {
 			"-t=5s https://foo.com",
 			"Making 12 requests to https://foo.com with a concurrency of 12 and timeout of 5s",
 		},
+		"method": {
+			"-m GET https://foo.com",
+			"Making 12 GET requests to https://foo.com with a concurrency of 12",
+		},
 	}
 	for name, tt := range happy {
 		tt := tt
@@ -69,6 +73,7 @@ func TestRunBad(t *testing.T) {
 		"n/zero":             "-n 0 https://foo.com",
 		"t/negative":         "-t -1 https://foo.com",
 		"t/bad":              "-t bad https://foo.com",
+		"m/bad":              "-m OPTIONS https://foo.com",
 	}
 	for name, tt := range bad {
 		tt := tt
