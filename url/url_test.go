@@ -1,7 +1,7 @@
 package url_test
 
 import (
-	"example.com/cmll/url"
+	"github.com/cmll/hit/url"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -1,4 +1,4 @@
-module example.com/cmll
+module github.com/cmll/hit
 
 go 1.20
 

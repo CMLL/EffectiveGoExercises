@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
-	"example.com/cmll/url"
 	"flag"
 	"fmt"
+	"github.com/cmll/hit/url"
 	"os"
 	"strconv"
 	"strings"

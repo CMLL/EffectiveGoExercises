@@ -1,8 +1,8 @@
 package url_test
 
 import (
-	"example.com/cmll/url"
 	"fmt"
+	"github.com/cmll/hit/url"
 	"log"
 )
 
