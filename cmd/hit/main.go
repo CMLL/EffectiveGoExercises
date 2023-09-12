@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/cmll/hit/hit"
 	"io"
+	"net/http"
 	"os"
 	"runtime"
 	"time"
@@ -22,6 +24,7 @@ const (
 func main() {
 	fmt.Fprint(os.Stdout, bannerText)
 	if err := run(flag.CommandLine, os.Args[1:], os.Stdout); err != nil {
+		fmt.Fprintln(os.Stderr, "error occurred:", err)
 		os.Exit(1)
 	}
 }
@@ -49,6 +52,15 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 		fmt.Fprintf(out, "Headers: %s\n", f.headers.String())
 	}
 	fmt.Fprintf(out, "Making %d%s requests to %s with a concurrency of %d%s", f.n, methodText, f.url, f.c, timeoutText)
+
+	request, err := http.NewRequest(http.MethodGet, f.url, http.NoBody)
+	if err != nil {
+		return err
+	}
+	var c hit.Client
+	sum := c.Do(request, int(f.n))
+	sum.Finalize(2 * time.Second)
+	sum.FPrint(out)
 
 	return nil
 }

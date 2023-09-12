@@ -126,12 +126,13 @@ func TestResultPrintsWriter(t *testing.T) {
 	}
 	buffer := bytes.Buffer{}
 
-	sut.Fprint(&buffer)
+	sut.FPrint(&buffer)
 
 	assert.NotEmpty(t, buffer)
 	data := buffer.String()
 	assert.Contains(t, data, "Summary")
 	assert.Contains(t, data, "Requests: 4")
 	assert.Contains(t, data, "Errors: 2")
-	assert.Contains(t, data, "Success: 50.0")
+	assert.Contains(t, data, "Success: 50%")
+	assert.Contains(t, data, "RPS: 0.0")
 }

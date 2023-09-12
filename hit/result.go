@@ -3,6 +3,7 @@ package hit
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -50,11 +51,18 @@ func (r *Result) success() float64 {
 	return float64(successReq) * float64(100) / float64(r.Requests)
 }
 
-func (r *Result) Fprint(out io.Writer) {
+func (r *Result) String() string {
+	var s strings.Builder
+	r.FPrint(&s)
+	return s.String()
+}
+
+func (r *Result) FPrint(out io.Writer) {
 	fmt.Fprintf(out, `
 Summary:
 Requests: %d
 Errors: %d
-Success: %.1f
-`, r.Requests, r.Errors, r.success())
+Success: %.0f%%
+RPS: %.1f
+`, r.Requests, r.Errors, r.success(), r.RPS)
 }
