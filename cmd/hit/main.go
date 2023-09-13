@@ -57,7 +57,9 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	var c hit.Client
+	c := &hit.Client{
+		C: int(f.c),
+	}
 	sum := c.Do(request, int(f.n))
 	sum.Finalize(2 * time.Second)
 	sum.FPrint(out)
