@@ -1,25 +1,30 @@
 package hit
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
 )
 
-func Produce(out chan<- *http.Request, n int, fn func() *http.Request) {
+func Produce(ctx context.Context, out chan<- *http.Request, n int, fn func() *http.Request) {
 	for ; n > 0; n-- {
-		out <- fn()
+		select {
+		case <-ctx.Done():
+			return
+		case out <- fn():
+		}
 	}
 }
 
-func produce(n int, fn func() *http.Request) <-chan *http.Request {
+func produce(ctx context.Context, n int, fn func() *http.Request) <-chan *http.Request {
 	out := make(chan *http.Request)
 	// This is sent in a goroutine to avoid the caller blocking on the unbuffered channel
 	// If we make the channel buffered, meaning the other end doesn't have to wait for it
 	// to close, we can avoid spinning this in a goroutine.
 	go func() {
 		defer close(out)
-		Produce(out, n, fn)
+		Produce(ctx, out, n, fn)
 	}()
 	return out
 }

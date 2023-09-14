@@ -23,6 +23,7 @@ type flags struct {
 	timeout time.Duration
 	method  option
 	headers headers
+	rps     int
 }
 
 type number int
@@ -89,6 +90,7 @@ func (f *flags) parse(s *flag.FlagSet, args []string) error {
 	s.DurationVar(&f.timeout, "t", time.Duration(0), "Timeout value")
 	s.Var(&f.method, "m", "Method, must be one of GET, POST, PUT")
 	s.Var(&f.headers, "H", "Headers for the request, can be multiple")
+	s.IntVar(&f.rps, "T", 0, "Throttle requests per second")
 	if err := s.Parse(args); err != nil {
 		fmt.Println(s.Output(), err)
 		return err

@@ -60,9 +60,12 @@ func (r *Result) String() string {
 func (r *Result) FPrint(out io.Writer) {
 	fmt.Fprintf(out, `
 Summary:
-Requests: %d
-Errors: %d
-Success: %.0f%%
-RPS: %.1f
-`, r.Requests, r.Errors, r.success(), r.RPS)
+	Requests: %d
+	Errors: %d
+	Success: %.0f%%
+	RPS: %.1f
+	Duration: %v
+	Fastest: %v
+	Slowest: %v
+`, r.Requests, r.Errors, r.success(), r.RPS, r.Duration, r.Fastest, r.Slowest)
 }

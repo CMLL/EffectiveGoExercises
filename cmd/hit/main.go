@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/cmll/hit/hit"
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"time"
 )
@@ -53,16 +56,29 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 	}
 	fmt.Fprintf(out, "Making %d%s requests to %s with a concurrency of %d%s", f.n, methodText, f.url, f.c, timeoutText)
 
+	const timeout = time.Minute
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
+	// Cancel and stop functions are done to tell a context is done.
+	// We defer on this so that when the program gracefully ends, the contexts stop.
+	defer stop()
+	defer cancel()
+
 	request, err := http.NewRequest(http.MethodGet, f.url, http.NoBody)
 	if err != nil {
 		return err
 	}
 	c := &hit.Client{
-		C: int(f.c),
+		C:       int(f.c),
+		RPS:     f.rps,
+		Timeout: 10 * time.Second,
 	}
-	sum := c.Do(request, int(f.n))
-	sum.Finalize(2 * time.Second)
+	sum := c.Do(ctx, request, int(f.n))
 	sum.FPrint(out)
+
+	if err := ctx.Err(); errors.Is(err, context.DeadlineExceeded) {
+		return fmt.Errorf("timed out in %v", timeout)
+	}
 
 	return nil
 }

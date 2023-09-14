@@ -3,46 +3,78 @@ package hit
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
 
 type Client struct {
-	C   int
-	RPS int
+	C       int
+	RPS     int
+	Timeout time.Duration
 }
 
 type SendFunc func(r *http.Request) *Result
 
-func (c *Client) Do(r *http.Request, n int) *Result {
+func (c *Client) Do(ctx context.Context, r *http.Request, n int) *Result {
 	t := time.Now()
-	sum := c.do(r, n)
+	sum := c.do(ctx, r, n)
 	return sum.Finalize(time.Since(t))
 }
 
-func (c *Client) do(r *http.Request, n int) *Result {
-	p := produce(n, func() *http.Request {
-		return r.Clone(context.TODO())
+func (c *Client) do(ctx context.Context, r *http.Request, n int) *Result {
+	p := produce(ctx, n, func() *http.Request {
+		return r.Clone(ctx)
 	})
 	if c.RPS > 0 {
 		p = throttle(p, time.Second/time.Duration(c.RPS*c.C))
 	}
-	var sum Result
-	for result := range split(p, c.C, Send) {
+	var (
+		sum    Result
+		client = c.client()
+	)
+	//defer client.CloseIdleConnections()
+	for result := range split(p, c.C, c.send(client)) {
 		sum.Merge(result)
 	}
 	return &sum
 }
 
-func Send(r *http.Request) *Result {
+func (c *Client) send(client *http.Client) SendFunc {
+	return func(r *http.Request) *Result {
+		return Send(client, r)
+	}
+
+}
+
+func (c *Client) client() *http.Client {
+	return &http.Client{
+		Timeout: c.Timeout,
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost: c.C,
+		},
+	}
+}
+
+func Send(client *http.Client, r *http.Request) *Result {
 	t := time.Now()
 
-	fmt.Printf("request: %s\n", r.URL)
-	time.Sleep(100 * time.Millisecond)
+	var (
+		code  int
+		bytes int64
+	)
+	fmt.Printf("\n request %v", r.URL)
+	response, err := client.Do(r)
+	if err == nil {
+		code = response.StatusCode
+		bytes, err = io.Copy(io.Discard, response.Body)
+		response.Body.Close()
+	}
 
 	return &Result{
 		Duration: time.Since(t),
-		Bytes:    10,
-		Status:   http.StatusOK,
+		Bytes:    bytes,
+		Status:   code,
+		Error:    err,
 	}
 }
