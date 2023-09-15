@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/cmll/hit/hit"
 	"io"
-	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -64,16 +63,10 @@ func run(s *flag.FlagSet, args []string, out io.Writer) error {
 	defer stop()
 	defer cancel()
 
-	request, err := http.NewRequest(http.MethodGet, f.url, http.NoBody)
+	sum, err := hit.Do(ctx, f.url, int(f.n), hit.Concurrency(int(f.c)))
 	if err != nil {
 		return err
 	}
-	c := &hit.Client{
-		C:       int(f.c),
-		RPS:     f.rps,
-		Timeout: 10 * time.Second,
-	}
-	sum := c.Do(ctx, request, int(f.n))
 	sum.FPrint(out)
 
 	if err := ctx.Err(); errors.Is(err, context.DeadlineExceeded) {
